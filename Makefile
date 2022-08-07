@@ -113,6 +113,8 @@ flac_config_options := \
 				--disable-silent-rules \
 				--enable-static \
 				--disable-shared \
+				--enable-64-bit-words \
+				--disable-doxygen-docs \
 				--disable-xmms-plugin \
 				--disable-ogg \
 				--disable-examples \
