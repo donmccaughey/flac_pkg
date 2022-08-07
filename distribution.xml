@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <title>flac {{version}}</title>
+
+    <background alignment="center" file="background.png" mime-type="image/png" scaling="tofit"/>
+    <background-darkAqua alignment="center" file="background-darkAqua.png" mime-type="image/png" scaling="tofit"/>
+
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <license file="license.html" mime-type="text/html"/>
+
+    <options customize="never"/>
+
+    <choices-outline>
+        <line choice="cc.donm.pkg.flac"/>
+    </choices-outline>
+
+    <choice id="cc.donm.pkg.flac">
+        <pkg-ref id="cc.donm.pkg.flac"/>
+    </choice>
+    <pkg-ref id="cc.donm.pkg.flac">flac.pkg</pkg-ref>
+
+</installer-gui-script>
