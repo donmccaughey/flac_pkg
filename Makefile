@@ -35,13 +35,17 @@ check :
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/flac)" = "x86_64 arm64"
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/metaflac)" = "x86_64 arm64"
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.a)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.8.dylib)" = "x86_64 arm64"
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.a)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.6.dylib)" = "x86_64 arm64"
 	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/flac) dylibs" = "0 dylibs"
 	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/metaflac) dylibs" = "0 dylibs"
 	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/flac
 	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/metaflac
 	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.a
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.8.dylib
 	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.a
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.6.dylib
 	pkgutil --check-signature flac-$(ver).pkg
 	spctl --assess --type install flac-$(ver).pkg
 	xcrun stapler validate flac-$(ver).pkg
@@ -109,10 +113,10 @@ $(TMP)/libiconv/install :
 
 ##### flac ##########
 
-flac_config_options := \
+flac_sources := $(shell find flac -type f \! -name .DS_Store)
+
+flac_common_options := \
 				--disable-silent-rules \
-				--enable-static \
-				--disable-shared \
 				--enable-64-bit-words \
 				--disable-doxygen-docs \
 				--disable-xmms-plugin \
@@ -122,10 +126,67 @@ flac_config_options := \
 				CXXFLAGS='$(CXXFLAGS) -I $(TMP)/libiconv/install/usr/local/include' \
 				LDFLAGS='$(LDFLAGS) -L$(TMP)/libiconv/install/usr/local/lib'
 
-flac_sources := $(shell find flac -type f \! -name .DS_Store)
 
-$(TMP)/flac/install/usr/local/bin/flac : $(TMP)/flac/build/src/flac/flac | $(TMP)/flac/install
-	cd $(TMP)/flac/build && $(MAKE) DESTDIR=$(TMP)/flac/install install
+##### build shared libraries ##########
+
+flac_shared_options := \
+				--disable-static \
+				--enable-shared \
+				$(flac_common_options)
+
+$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.8.dylib : $(TMP)/flac/build_shared/config.status $(flac_sources)
+	cd $(TMP)/flac/build_shared && $(MAKE)
+
+$(TMP)/flac/build_shared/config.status : \
+			flac/configure \
+			$(TMP)/libiconv/install/usr/local/include/iconv.h \
+			$(TMP)/libiconv/install/usr/local/lib/libiconv.a \
+			| $$(dir $$@)
+	cd $(TMP)/flac/build_shared \
+		&& sh $(abspath $<) $(flac_shared_options)
+
+$(TMP)/flac/build_shared :
+	mkdir -p $@
+
+
+##### build static libraries and statically-linked executables ##########
+
+flac_static_options := \
+				--enable-static \
+				--disable-shared \
+				$(flac_common_options)
+
+$(TMP)/flac/build_static/src/flac/flac : $(TMP)/flac/build_static/config.status $(flac_sources)
+	cd $(TMP)/flac/build_static && $(MAKE)
+
+$(TMP)/flac/build_static/config.status : \
+			flac/configure \
+			$(TMP)/libiconv/install/usr/local/include/iconv.h \
+			$(TMP)/libiconv/install/usr/local/lib/libiconv.a \
+			| $$(dir $$@)
+	cd $(TMP)/flac/build_static \
+		&& sh $(abspath $<) $(flac_static_options)
+
+$(TMP)/flac/build_static :
+	mkdir -p $@
+
+
+##### assemble installed distribution and sign binaries ##########
+
+$(TMP)/installed-and-signed.stamp.txt : \
+		$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.8.dylib \
+		$(TMP)/flac/build_static/src/flac/flac \
+		| $(TMP)/flac/install
+	cd $(TMP)/flac/build_shared && $(MAKE) DESTDIR=$(TMP)/flac/install install
+	xcrun codesign \
+		--sign "$(APP_SIGNING_ID)" \
+		--options runtime \
+		$(TMP)/flac/install/usr/local/lib/libFLAC.8.dylib
+	xcrun codesign \
+		--sign "$(APP_SIGNING_ID)" \
+		--options runtime \
+		$(TMP)/flac/install/usr/local/lib/libFLAC++.6.dylib
+	cd $(TMP)/flac/build_static && $(MAKE) DESTDIR=$(TMP)/flac/install install
 	xcrun codesign \
 		--sign "$(APP_SIGNING_ID)" \
 		--options runtime \
@@ -142,19 +203,8 @@ $(TMP)/flac/install/usr/local/bin/flac : $(TMP)/flac/build/src/flac/flac | $(TMP
 		--sign "$(APP_SIGNING_ID)" \
 		--options runtime \
 		$(TMP)/flac/install/usr/local/lib/libFLAC++.a
+	date > $@
 
-$(TMP)/flac/build/src/flac/flac : $(TMP)/flac/build/config.status $(flac_sources)
-	cd $(TMP)/flac/build && $(MAKE)
-
-$(TMP)/flac/build/config.status : \
-			flac/configure \
-			$(TMP)/libiconv/install/usr/local/include/iconv.h \
-			$(TMP)/libiconv/install/usr/local/lib/libiconv.a \
-			| $$(dir $$@)
-	cd $(TMP)/flac/build \
-		&& sh $(abspath $<) $(flac_config_options)
-
-$(TMP)/flac/build \
 $(TMP)/flac/install :
 	mkdir -p $@
 
@@ -176,7 +226,7 @@ $(TMP)/flac/install/etc/paths.d/flac.path : flac.path | $$(dir $$@)
 $(TMP)/flac/install/usr/local/bin/uninstall-flac : \
 		uninstall-flac \
 		$(TMP)/flac/install/etc/paths.d/flac.path \
-		$(TMP)/flac/install/usr/local/bin/flac \
+		$(TMP)/installed-and-signed.stamp.txt \
 		| $$(dir $$@)
 	cp $< $@
 	cd $(TMP)/flac/install && find . -type f \! -name .DS_Store | sort >> $@
