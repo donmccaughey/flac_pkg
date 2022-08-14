@@ -118,7 +118,6 @@ flac_sources := $(shell find flac -type f \! -name .DS_Store)
 flac_common_options := \
 				--disable-silent-rules \
 				--enable-64-bit-words \
-				--disable-doxygen-docs \
 				--disable-xmms-plugin \
 				--disable-ogg \
 				--disable-examples \
@@ -134,7 +133,8 @@ flac_shared_options := \
 				--enable-shared \
 				$(flac_common_options)
 
-$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.8.dylib : $(TMP)/flac/build_shared/config.status $(flac_sources)
+$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.8.dylib : \
+		$(TMP)/flac/build_shared/config.status $(flac_sources)
 	cd $(TMP)/flac/build_shared && $(MAKE)
 
 $(TMP)/flac/build_shared/config.status : \
@@ -154,9 +154,11 @@ $(TMP)/flac/build_shared :
 flac_static_options := \
 				--enable-static \
 				--disable-shared \
+				--disable-doxygen-docs \
 				$(flac_common_options)
 
-$(TMP)/flac/build_static/src/flac/flac : $(TMP)/flac/build_static/config.status $(flac_sources)
+$(TMP)/flac/build_static/src/flac/flac : \
+		$(TMP)/flac/build_static/config.status $(flac_sources)
 	cd $(TMP)/flac/build_static && $(MAKE)
 
 $(TMP)/flac/build_static/config.status : \
