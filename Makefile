@@ -3,7 +3,7 @@ INSTALLER_SIGNING_ID ?= Developer ID Installer: Donald McCaughey
 NOTARIZATION_KEYCHAIN_PROFILE ?= Donald McCaughey
 TMP ?= $(abspath tmp)
 
-version := 1.3.4
+version := 1.4.2
 libiconv_version := 1.17
 revision := 1
 archs := arm64 x86_64
@@ -35,17 +35,17 @@ check :
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/flac)" = "x86_64 arm64"
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/metaflac)" = "x86_64 arm64"
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.a)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.8.dylib)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.12.dylib)" = "x86_64 arm64"
 	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.a)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.6.dylib)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.10.dylib)" = "x86_64 arm64"
 	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/flac) dylibs" = "0 dylibs"
 	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/metaflac) dylibs" = "0 dylibs"
 	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/flac
 	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/metaflac
 	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.a
-	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.8.dylib
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.12.dylib
 	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.a
-	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.6.dylib
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.10.dylib
 	pkgutil --check-signature flac-$(ver).pkg
 	spctl --assess --type install flac-$(ver).pkg
 	xcrun stapler validate flac-$(ver).pkg
@@ -133,7 +133,7 @@ flac_shared_options := \
 				--enable-shared \
 				$(flac_common_options)
 
-$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.8.dylib : \
+$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.12.dylib : \
 		$(TMP)/flac/build_shared/config.status $(flac_sources)
 	cd $(TMP)/flac/build_shared && $(MAKE)
 
@@ -176,18 +176,18 @@ $(TMP)/flac/build_static :
 ##### assemble installed distribution and sign binaries ##########
 
 $(TMP)/installed-and-signed.stamp.txt : \
-		$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.8.dylib \
+		$(TMP)/flac/build_shared/src/libFLAC/.libs/libFLAC.12.dylib \
 		$(TMP)/flac/build_static/src/flac/flac \
 		| $(TMP)/flac/install
 	cd $(TMP)/flac/build_shared && $(MAKE) DESTDIR=$(TMP)/flac/install install
 	xcrun codesign \
 		--sign "$(APP_SIGNING_ID)" \
 		--options runtime \
-		$(TMP)/flac/install/usr/local/lib/libFLAC.8.dylib
+		$(TMP)/flac/install/usr/local/lib/libFLAC.12.dylib
 	xcrun codesign \
 		--sign "$(APP_SIGNING_ID)" \
 		--options runtime \
-		$(TMP)/flac/install/usr/local/lib/libFLAC++.6.dylib
+		$(TMP)/flac/install/usr/local/lib/libFLAC++.10.dylib
 	cd $(TMP)/flac/build_static && $(MAKE) DESTDIR=$(TMP)/flac/install install
 	xcrun codesign \
 		--sign "$(APP_SIGNING_ID)" \
