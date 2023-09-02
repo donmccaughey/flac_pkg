@@ -1,9 +1,9 @@
-FLAC 1.4.2 for macOS
+FLAC 1.4.3 for macOS
 ====================
 
 This project builds a signed universal macOS installer package for [FLAC][1],
 the fastest and most widely supported lossless audio codec.  It contains the
-source distribution for FLAC 1.4.2 and [libiconv 1.17][2].
+source distribution for FLAC 1.4.3 and [libiconv 1.17][2].
 
 [1]: https://xiph.org/flac/ "FLAC"
 [2]: https://www.gnu.org/software/libiconv/
@@ -12,11 +12,9 @@ source distribution for FLAC 1.4.2 and [libiconv 1.17][2].
 
 A recent version of Xcode, [`doxygen`][3] and [`jq`][4] are needed to build and
 notarize this installer package.  An [Apple Developer][5] account is required
-to generate the credentials needed to sign and notarize.
-
-Building was last tested on an Apple Silicon Mac with macOS Ventura 13.0.1 and
-Xcode 14.1.  Installation was last tested on both Intel and Apple Silicon Macs
-running Ventura.
+to generate the credentials needed to sign and notarize.  The current release
+was built and tested on an Apple Silicon Mac with macOS Ventura 13.5.1 and
+Xcode 14.3.1.
 
 [3]: https://www.doxygen.nl
 [4]: https://stedolan.github.io/jq/
@@ -52,7 +50,7 @@ To build and sign the executable and installer, run:
         $ make [APP_SIGNING_ID="<cert name 1>"] [INSTALLER_SIGNING_ID="<cert name 2>"] [TMP="<build dir>"]
 
 Intermediate files are generated in the temp directory; the signed installer 
-package is written into the project root with the name `flac-1.4.2.pkg`.  
+package is written into the project root with the name `flac-1.4.3.pkg`.  
 
 To notarize the signed installer package, run:
 
@@ -63,7 +61,7 @@ success.  Check the file `$(TMP)/notarization-log.json` for detailed
 information if notarization fails.  The signed installer is stapled in place
 if notarization succeeds.  Use the command:
 
-        $ xcrun stapler validate --verbose flac-1.4.2.pkg
+        $ xcrun stapler validate --verbose flac-1.4.3.pkg
 
 to check the notarization state of the installer package.
 
@@ -102,7 +100,7 @@ The `--sync` option adds the credentials to the user's iCloud Keychain.
 
 ## License
 
-The installer and related scripts are copyright (c) 2022 Don McCaughey.
+The installer and related scripts are copyright (c) 2023 Don McCaughey.
 Different parts of FLAC are distributed under different licenses.  The sources
 for the macOS installer package are distributed under a BSD-style license.  See
 the LICENSE file for details.
