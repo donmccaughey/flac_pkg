@@ -12,9 +12,7 @@ source distribution for FLAC 1.4.3 and [libiconv 1.17][2].
 
 A recent version of Xcode, [`doxygen`][3] and [`jq`][4] are needed to build and
 notarize this installer package.  An [Apple Developer][5] account is required
-to generate the credentials needed to sign and notarize.  The current release
-was built and tested on an Apple Silicon Mac with macOS Ventura 13.5.1 and
-Xcode 14.3.1.
+to generate the credentials needed to sign and notarize.
 
 [3]: https://www.doxygen.nl
 [4]: https://stedolan.github.io/jq/
