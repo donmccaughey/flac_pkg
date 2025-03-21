@@ -4,7 +4,7 @@ NOTARIZATION_KEYCHAIN_PROFILE ?= Donald McCaughey
 TMP ?= $(abspath tmp)
 
 version := 1.4.3
-libiconv_version := 1.17
+libiconv_version := 1.18
 revision := 1
 archs := arm64 x86_64
 
@@ -335,4 +335,3 @@ $(TMP)/notarized.stamp.txt : $(TMP)/notarization-log.json | $$(dir $$@)
 flac-$(ver).pkg : $(TMP)/flac-$(ver)-unnotarized.pkg $(TMP)/notarized.stamp.txt
 	cp $< $@
 	xcrun stapler staple $@
-
