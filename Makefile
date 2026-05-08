@@ -33,39 +33,13 @@ clean :
 
 
 .PHONY : check
-check :
-	test "$(shell lipo -archs $(TMP)/libiconv/install/usr/local/lib/libiconv.a)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/flac)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/metaflac)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.a)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.14.dylib)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.a)" = "x86_64 arm64"
-	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.11.dylib)" = "x86_64 arm64"
-	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/flac) dylibs" = "0 dylibs"
-	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/metaflac) dylibs" = "0 dylibs"
-	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/flac
-	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/metaflac
-	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.a
-	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.14.dylib
-	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.a
-	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.11.dylib
-	pkgutil --check-signature flac-$(ver).pkg
-	spctl --assess --type install flac-$(ver).pkg
-	xcrun stapler validate flac-$(ver).pkg
+check : $(TMP)/checked-package.stamp.txt
 
 
 .PHONY : libiconv
 libiconv : \
 			$(TMP)/libiconv/install/usr/local/include/iconv.h \
 			$(TMP)/libiconv/install/usr/local/lib/libiconv.a
-
-
-.PHONY : flac
-flac : $(TMP)/flac/install/usr/local/bin/flac
-
-
-.PHONY : pkg
-pkg : $(TMP)/flac.pkg
 
 
 ##### compilation flags ##########
@@ -337,3 +311,24 @@ $(TMP)/notarized.stamp.txt : $(TMP)/notarization-log.json | $$(dir $$@)
 flac-$(ver).pkg : $(TMP)/flac-$(ver)-unnotarized.pkg $(TMP)/notarized.stamp.txt
 	cp $< $@
 	xcrun stapler staple $@
+
+$(TMP)/checked-package.stamp.txt : flac-$(ver).pkg
+	test "$(shell lipo -archs $(TMP)/libiconv/install/usr/local/lib/libiconv.a)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/flac)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/bin/metaflac)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.a)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC.14.dylib)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.a)" = "x86_64 arm64"
+	test "$(shell lipo -archs $(TMP)/flac/install/usr/local/lib/libFLAC++.11.dylib)" = "x86_64 arm64"
+	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/flac) dylibs" = "0 dylibs"
+	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/flac/install/usr/local/bin/metaflac) dylibs" = "0 dylibs"
+	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/flac
+	codesign --verify --strict $(TMP)/flac/install/usr/local/bin/metaflac
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.a
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC.14.dylib
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.a
+	codesign --verify --strict $(TMP)/flac/install/usr/local/lib/libFLAC++.11.dylib
+	pkgutil --check-signature flac-$(ver).pkg
+	spctl --assess --type install flac-$(ver).pkg
+	xcrun stapler validate flac-$(ver).pkg
+	date > $@
